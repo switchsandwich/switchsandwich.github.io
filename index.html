@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>switch_sandwich — links</title>
 
-  <!-- Google Fonts: Baloo 2 (с кириллицей) + Comic Neue (fallback, с кириллицей) -->
+  <!-- Google Fonts: Baloo 2 (с кириллицей) + Comic Neue (fallback) -->
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&family=Comic+Neue:wght@300;400;700&display=swap&subset=cyrillic" rel="stylesheet">
 
-  <!-- Встроенный favicon (SVG с эмодзи) -->
+  <!-- favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8D%94%3C/text%3E%3C/svg%3E">
 
   <style>
@@ -19,12 +19,13 @@
       --text: #f7f7f7;
       --muted: #d0cfcf;
       --bg-url: none;
+      --parallaxOffset: 0px; /* управляется скриптом */
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
 
-    /* Стек шрифтов: сначала системный Comic Sans MS (если есть), иначе Baloo 2 (с поддержкой кириллицы), потом Comic Neue, далее системные fallbacks */
+    /* Шрифты: сначала системный Comic Sans MS, иначе Baloo 2 (крутой для кириллицы), Comic Neue, затем fallback */
     body{
       font-family: "Comic Sans MS", "Baloo 2", "Comic Neue", cursive, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       background: #0b0b0b;
@@ -38,21 +39,24 @@
       padding:28px;
     }
 
+    /* Фон с параллаксом: позиция использует переменную --parallaxOffset */
     body::before{
       content:"";
       position:fixed;
       inset:0;
       background-image: var(--bg-url), linear-gradient(180deg, rgba(12,12,12,0.25), rgba(0,0,0,0.7));
       background-size: cover, cover;
-      background-position: center, center;
+      background-position: center calc(50% + var(--parallaxOffset)), center;
       filter: blur(4px) saturate(1.05) brightness(0.45);
       z-index: -2;
+      will-change: background-position;
     }
 
     .overlay{
       position:fixed; inset:0;
       background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35));
       z-index:-1;
+      pointer-events:none;
     }
 
     .card {
@@ -84,10 +88,7 @@
       flex-shrink:0;
     }
 
-    .title-wrap{
-      display:flex;
-      flex-direction:column;
-    }
+    .title-wrap{ display:flex; flex-direction:column; }
 
     .site-title{
       font-size:26px;
@@ -112,6 +113,7 @@
       font-family: inherit;
     }
 
+    /* Карточки ссылки: начальное состояние (скрыто) и видимое состояние (in-view) */
     .link-card{
       display:flex;
       flex-direction:column;
@@ -119,17 +121,27 @@
       text-decoration:none;
       background:var(--card-bg);
       border-radius:12px;
-      transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+      transition: transform .18s cubic-bezier(.2,.8,.2,1), background .12s ease, box-shadow .18s ease, opacity .35s ease;
       box-shadow: 0 6px 20px rgba(2,2,2,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.03);
       color:inherit;
-      font-family: inherit;
+      transform: translateY(12px) scale(.995);
+      opacity: 0;
+      will-change: transform, opacity;
     }
 
+    /* when in view */
+    .link-card.in-view{
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      transition-delay: 0s;
+    }
+
+    /* hover micro interactions */
     .link-card:hover{
-      transform: translateY(-4px);
+      transform: translateY(-6px) scale(1.01);
       background: var(--card-hover);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.6);
     }
 
     .link-top{
@@ -143,21 +155,37 @@
       font-size:17px;
       font-weight:700;
       color:var(--text);
-      font-family: inherit;
+      display:flex;
+      align-items:center;
+      gap:10px;
     }
 
     .link-desc{
       font-size:13px;
       color:var(--muted);
       margin-top:6px;
-      font-family: inherit;
     }
 
     .small{
       font-size:12px;
       color:var(--muted);
-      font-family: inherit;
     }
+
+    /* emoji style */
+    .link-emoji{
+      display:inline-flex;
+      width:28px;
+      height:28px;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      border-radius:8px;
+      background: rgba(255,255,255,0.03);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      transition: transform .12s ease;
+    }
+
+    .link-card:hover .link-emoji{ transform: translateY(-3px) scale(1.02); }
 
     .footer{
       margin-top:16px;
@@ -179,9 +207,9 @@
       color:var(--muted);
       border:1px dashed rgba(255,255,255,0.04);
       text-decoration:none;
-      font-family: inherit;
     }
 
+    /* small screens */
     @media (max-width:560px){
       .card{ padding:18px }
       .avatar{ width:72px; height:72px }
@@ -204,7 +232,7 @@
     <section class="links" aria-label="links list">
       <a class="link-card" href="https://github.com/switchsandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">GitHub</div>
+          <div class="link-title"><span class="link-emoji">🐙</span> GitHub</div>
           <div class="small">Код и проекты</div>
         </div>
         <div class="link-desc">Репозитории, демо и инструменты.</div>
@@ -212,7 +240,7 @@
 
       <a class="link-card" href="https://www.teepublic.com/user/switch-sandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">Shop</div>
+          <div class="link-title"><span class="link-emoji">🛍️</span> Shop</div>
           <div class="small">Магазин</div>
         </div>
         <div class="link-desc">Футболки, стикеры и т.д.</div>
@@ -220,7 +248,7 @@
 
       <a class="link-card" href="https://t.me/switch_sandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">Telegram</div>
+          <div class="link-title"><span class="link-emoji">✈️</span> Telegram</div>
           <div class="small">Чат / контакты</div>
         </div>
         <div class="link-desc">Пиши в телеграм — отвечаю быстрее.</div>
@@ -228,7 +256,7 @@
 
       <a class="link-card" href="mailto:op206dip8@mozmail.com" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">Email</div>
+          <div class="link-title"><span class="link-emoji">✉️</span> Email</div>
           <div class="small">Обратная связь</div>
         </div>
         <div class="link-desc">Noreply Email.</div>
@@ -244,9 +272,9 @@
     // Подставим год
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Проверяем наличие w.png и i.jpg (без ?v=, чтобы позволить кеширование)
+    // Все существующие проверки (фон/аватар) + новые эффекты (parallax + scroll animations)
     (function(){
-      // фон: проверяем наличие w.png — если есть, используем
+      // 1) проверка наличия w.png и i.jpg (без ?v= чтобы сохранить кеширование)
       const bgTest = new Image();
       bgTest.onload = function(){
         document.documentElement.style.setProperty('--bg-url', `url('w.png')`);
@@ -254,7 +282,6 @@
       bgTest.onerror = function(){ /* если нет w.png — оставляем градиент */ };
       bgTest.src = `w.png`;
 
-      // аватар: проверяем наличие i.jpg — если есть, показываем; иначе скрываем
       const avatarEl = document.getElementById('avatar');
       if(avatarEl){
         const av = new Image();
@@ -267,6 +294,59 @@
         };
         av.src = 'i.jpg';
       }
+
+      // 2) Параллакс фона — лёгкий эффект, подойдёт для любых изображений
+      // Используем rAF для производительности
+      let latestScroll = 0;
+      let ticking = false;
+      const parallaxFactor = 0.04; // уменьшай/увеличивай для силы параллакса (0.02..0.07)
+      function onScroll(){
+        latestScroll = window.scrollY || window.pageYOffset;
+        if(!ticking){
+          window.requestAnimationFrame(function(){
+            const offset = Math.round(latestScroll * parallaxFactor);
+            document.documentElement.style.setProperty('--parallaxOffset', offset + 'px');
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+      window.addEventListener('scroll', onScroll, {passive:true});
+      // вызов один раз при загрузке
+      onScroll();
+
+      // 3) IntersectionObserver для плавного появления карточек
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -10% 0px',
+        threshold: 0.12
+      };
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){
+            entry.target.classList.add('in-view');
+            // можно отключать наблюдение если анимация однократная
+            io.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      // наблюдаем все карточки
+      document.querySelectorAll('.link-card').forEach((el, i)=>{
+        // небольшой ступенчатый delay через CSS inline style для красоты
+        el.style.transitionDelay = (i * 60) + 'ms';
+        io.observe(el);
+      });
+
+      // 4) добавить маленький эффект при наведении для клавиатурной доступности (focus)
+      document.querySelectorAll('.link-card').forEach(el=>{
+        el.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter' || e.key === ' '){
+            el.click();
+          }
+        });
+      });
+
     })();
 
     // Подстраховка для title

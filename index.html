@@ -15,7 +15,7 @@
       --card-hover: rgba(255,255,255,0.09);
       --text: #f7f7f7;
       --muted: #d0cfcf;
-      --bg-url: none; /* JS заменит на url('w.png?v=...') если изображение доступно */
+      --bg-url: none; /* JS заменит на url('w.png') если изображение доступно */
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -182,7 +182,7 @@
 
   <article class="card" role="main" aria-label="link hub">
     <header class="head">
-      <!-- avatar.png опционально; JS добавляет ?v=timestamp чтобы обойти кеш -->
+      <!-- avatar: указываем i.jpg (положен в корень репо) -->
       <img class="avatar" id="avatar" src="i.jpg" alt="switch_sandwich avatar" onerror="this.style.display='none'">
       <div class="title-wrap">
         <div class="site-title">switch_sandwich</div>
@@ -238,34 +238,34 @@
     // Подставим текущий год
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Обход кэша: попробуем подгрузить bg.jpg и avatar.png с параметром ?v=timestamp
+    // Проверяем наличие w.png и i.jpg (без ?v=, чтобы позволить кеширование)
     (function(){
-      const t = Date.now();
-      // bg
+      // фон: проверяем наличие w.png — если есть, используем
       const bgTest = new Image();
       bgTest.onload = function(){
-        // если загрузилось — используем URL с query, CSS переменная
-        document.documentElement.style.setProperty('--bg-url', `url('w.png?v=${t}')`);
+        document.documentElement.style.setProperty('--bg-url', `url('w.png')`);
       };
       bgTest.onerror = function(){ /* если нет w.png — оставляем градиент */ };
-      bgTest.src = `w.png?v=${t}`;
+      bgTest.src = `w.png`;
 
-
-      // avatar: если есть — добавим ?v= to avoid cached avatar
+      // аватар: проверяем наличие i.jpg — если есть, показываем; иначе скрываем
       const avatarEl = document.getElementById('avatar');
       if(avatarEl){
         const av = new Image();
         av.onload = function(){
-          avatarEl.src = `avatar.png?v=${t}`;
+          // файл существует — оставляем src как i.jpg (браузер может использовать кеш)
+          avatarEl.src = 'i.jpg';
           avatarEl.style.display = 'block';
         };
-        av.onerror = function(){ avatarEl.style.display = 'none'; };
-        av.src = `avatar.png?v=${t}`;
+        av.onerror = function(){
+          // нет файла — скрываем элемент
+          avatarEl.style.display = 'none';
+        };
+        av.src = 'i.jpg';
       }
     })();
 
     // Удобная ф-ция: если браузер не обновляет title, можно перезадать
-    // (редко нужно, но поможет в нестандартных случаях)
     (function ensureTitle(){
       const wanted = "switch_sandwich — links";
       if(document.title !== wanted){

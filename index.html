@@ -20,7 +20,7 @@
       --card-hover: rgba(255,255,255,0.09);
       --text: #f7f7f7;
       --muted: #d0cfcf;
-      --bg-url: none; /* JS заменит на url('bg.jpg?v=...') если изображение доступно */
+      --bg-url: none; /* JS заменит на url('w.png?v=...') если изображение доступно */
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -250,10 +250,11 @@
       const bgTest = new Image();
       bgTest.onload = function(){
         // если загрузилось — используем URL с query, CSS переменная
-        document.documentElement.style.setProperty('--bg-url', `url('bg.jpg?v=${t}')`);
+        document.documentElement.style.setProperty('--bg-url', `url('w.png?v=${t}')`);
       };
-      bgTest.onerror = function(){ /* если нет bg.jpg — оставляем градиент */ };
-      bgTest.src = `bg.jpg?v=${t}`;
+      bgTest.onerror = function(){ /* если нет w.png — оставляем градиент */ };
+      bgTest.src = `w.png?v=${t}`;
+
 
       // avatar: если есть — добавим ?v= to avoid cached avatar
       const avatarEl = document.getElementById('avatar');

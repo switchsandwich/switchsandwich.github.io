@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>switch_sandwich — links</title>
 
+  <!-- Google Fonts: Comic Neue (fallback если нет Comic Sans MS) -->
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+
   <!-- Встроенный favicon (SVG с эмодзи) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8D%94%3C/text%3E%3C/svg%3E">
 
@@ -20,8 +23,10 @@
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
+
+    /* Основной стек шрифтов: сначала Comic Sans MS, если нет — Comic Neue (Google Fonts), далее fallback */
     body{
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: "Comic Sans MS", "Comic Neue", "Comic Sans", cursive, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial !important;
       background: #0b0b0b;
       color:var(--text);
       -webkit-font-smoothing:antialiased;
@@ -59,7 +64,7 @@
       box-shadow: 0 16px 48px rgba(0,0,0,0.6);
       border: 1px solid rgba(255,255,255,0.03);
       backdrop-filter: blur(6px);
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .head {
@@ -89,14 +94,14 @@
       color:var(--accent);
       text-transform:lowercase;
       letter-spacing:0.6px;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .subtitle{
       color:var(--muted);
       font-size:13px;
       margin-top:4px;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .links{
@@ -104,7 +109,7 @@
       flex-direction:column;
       gap:12px;
       margin-top:8px;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .link-card{
@@ -118,7 +123,7 @@
       box-shadow: 0 6px 20px rgba(2,2,2,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.03);
       color:inherit;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .link-card:hover{
@@ -138,20 +143,20 @@
       font-size:17px;
       font-weight:700;
       color:var(--text);
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .link-desc{
       font-size:13px;
       color:var(--muted);
       margin-top:6px;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .small{
       font-size:12px;
       color:var(--muted);
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .footer{
@@ -163,7 +168,7 @@
       color:var(--muted);
       font-size:13px;
       flex-wrap:wrap;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     .btn-ghost{
@@ -174,7 +179,7 @@
       color:var(--muted);
       border:1px dashed rgba(255,255,255,0.04);
       text-decoration:none;
-      font-family: "Comic Sans MS", cursive !important;
+      font-family: inherit !important;
     }
 
     @media (max-width:560px){
@@ -207,7 +212,7 @@
 
       <a class="link-card" href="https://www.teepublic.com/user/switch_sandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">Магазин</div>
+          <div class="link-title">Shop</div>
           <div class="small">Магазин</div>
         </div>
         <div class="link-desc">Футболки, стикеры и т.д.</div>
@@ -226,7 +231,7 @@
           <div class="link-title">Email</div>
           <div class="small">Обратная связь</div>
         </div>
-        <div class="link-desc">Емайлы читаю без ответа.</div>
+        <div class="link-desc">Noreply Email.</div>
       </a>
     </section>
 
@@ -236,26 +241,40 @@
   </article>
 
   <script>
+    // Подставим год
     document.getElementById('year').textContent = new Date().getFullYear();
 
+    // Проверяем наличие w.png и i.jpg (без ?v=, чтобы позволить кеширование)
     (function(){
+      // фон: проверяем наличие w.png — если есть, используем
       const bgTest = new Image();
-      bgTest.onload = function(){ document.documentElement.style.setProperty('--bg-url', `url('w.png')`); };
-      bgTest.onerror = function(){};
+      bgTest.onload = function(){
+        document.documentElement.style.setProperty('--bg-url', `url('w.png')`);
+      };
+      bgTest.onerror = function(){ /* если нет w.png — оставляем градиент */ };
       bgTest.src = `w.png`;
 
+      // аватар: проверяем наличие i.jpg — если есть, показываем; иначе скрываем
       const avatarEl = document.getElementById('avatar');
       if(avatarEl){
         const av = new Image();
-        av.onload = function(){ avatarEl.src = 'i.jpg'; avatarEl.style.display = 'block'; };
-        av.onerror = function(){ avatarEl.style.display = 'none'; };
+        av.onload = function(){
+          avatarEl.src = 'i.jpg';
+          avatarEl.style.display = 'block';
+        };
+        av.onerror = function(){
+          avatarEl.style.display = 'none';
+        };
         av.src = 'i.jpg';
       }
     })();
 
+    // Подстраховка для title
     (function ensureTitle(){
       const wanted = "switch_sandwich — links";
-      if(document.title !== wanted){ document.title = wanted; }
+      if(document.title !== wanted){
+        document.title = wanted;
+      }
     })();
   </script>
 </body>

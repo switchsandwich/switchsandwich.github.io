@@ -15,13 +15,13 @@
       --card-hover: rgba(255,255,255,0.09);
       --text: #f7f7f7;
       --muted: #d0cfcf;
-      --bg-url: none; /* JS заменит на url('w.png') если изображение доступно */
+      --bg-url: none;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
-      font-family: "Comic Sans MS", "Comic Sans", "ComicNeue", cursive, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-family: "Comic Sans MS", cursive !important;
       background: #0b0b0b;
       color:var(--text);
       -webkit-font-smoothing:antialiased;
@@ -33,7 +33,6 @@
       padding:28px;
     }
 
-    /* фон: картинка (если есть) + градиент */
     body::before{
       content:"";
       position:fixed;
@@ -51,7 +50,6 @@
       z-index:-1;
     }
 
-    /* Карточка контейнер */
     .card {
       width:100%;
       max-width:720px;
@@ -61,6 +59,7 @@
       box-shadow: 0 16px 48px rgba(0,0,0,0.6);
       border: 1px solid rgba(255,255,255,0.03);
       backdrop-filter: blur(6px);
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .head {
@@ -90,12 +89,14 @@
       color:var(--accent);
       text-transform:lowercase;
       letter-spacing:0.6px;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .subtitle{
       color:var(--muted);
       font-size:13px;
       margin-top:4px;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .links{
@@ -103,6 +104,7 @@
       flex-direction:column;
       gap:12px;
       margin-top:8px;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .link-card{
@@ -116,6 +118,7 @@
       box-shadow: 0 6px 20px rgba(2,2,2,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.03);
       color:inherit;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .link-card:hover{
@@ -135,17 +138,20 @@
       font-size:17px;
       font-weight:700;
       color:var(--text);
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .link-desc{
       font-size:13px;
       color:var(--muted);
       margin-top:6px;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .small{
       font-size:12px;
       color:var(--muted);
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .footer{
@@ -157,6 +163,7 @@
       color:var(--muted);
       font-size:13px;
       flex-wrap:wrap;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
     .btn-ghost{
@@ -167,9 +174,9 @@
       color:var(--muted);
       border:1px dashed rgba(255,255,255,0.04);
       text-decoration:none;
+      font-family: "Comic Sans MS", cursive !important;
     }
 
-    /* Mobile */
     @media (max-width:560px){
       .card{ padding:18px }
       .avatar{ width:72px; height:72px }
@@ -182,7 +189,6 @@
 
   <article class="card" role="main" aria-label="link hub">
     <header class="head">
-      <!-- avatar: указываем i.jpg (положен в корень репо) -->
       <img class="avatar" id="avatar" src="i.jpg" alt="switch_sandwich avatar" onerror="this.style.display='none'">
       <div class="title-wrap">
         <div class="site-title">switch_sandwich</div>
@@ -191,7 +197,6 @@
     </header>
 
     <section class="links" aria-label="links list">
-      <!-- Редактируй эти ссылки прямо в index.html -->
       <a class="link-card" href="https://github.com/switchsandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
           <div class="link-title">GitHub</div>
@@ -202,7 +207,7 @@
 
       <a class="link-card" href="https://www.teepublic.com/user/switch_sandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
-          <div class="link-title">Shop</div>
+          <div class="link-title">Магазин</div>
           <div class="small">Магазин</div>
         </div>
         <div class="link-desc">Футболки, стикеры и т.д.</div>
@@ -221,56 +226,36 @@
           <div class="link-title">Email</div>
           <div class="small">Обратная связь</div>
         </div>
-        <div class="link-desc">Noreply Email.</div>
+        <div class="link-desc">Емайлы читаю без ответа.</div>
       </a>
-
-      <!-- Добавляй новые <a class="link-card" ...> сюда -->
     </section>
 
     <footer class="footer">
       <div class="small">© <span id="year"></span> switch_sandwich</div>
-      <div>
-      </div>
     </footer>
   </article>
 
   <script>
-    // Подставим текущий год
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Проверяем наличие w.png и i.jpg (без ?v=, чтобы позволить кеширование)
     (function(){
-      // фон: проверяем наличие w.png — если есть, используем
       const bgTest = new Image();
-      bgTest.onload = function(){
-        document.documentElement.style.setProperty('--bg-url', `url('w.png')`);
-      };
-      bgTest.onerror = function(){ /* если нет w.png — оставляем градиент */ };
+      bgTest.onload = function(){ document.documentElement.style.setProperty('--bg-url', `url('w.png')`); };
+      bgTest.onerror = function(){};
       bgTest.src = `w.png`;
 
-      // аватар: проверяем наличие i.jpg — если есть, показываем; иначе скрываем
       const avatarEl = document.getElementById('avatar');
       if(avatarEl){
         const av = new Image();
-        av.onload = function(){
-          // файл существует — оставляем src как i.jpg (браузер может использовать кеш)
-          avatarEl.src = 'i.jpg';
-          avatarEl.style.display = 'block';
-        };
-        av.onerror = function(){
-          // нет файла — скрываем элемент
-          avatarEl.style.display = 'none';
-        };
+        av.onload = function(){ avatarEl.src = 'i.jpg'; avatarEl.style.display = 'block'; };
+        av.onerror = function(){ avatarEl.style.display = 'none'; };
         av.src = 'i.jpg';
       }
     })();
 
-    // Удобная ф-ция: если браузер не обновляет title, можно перезадать
     (function ensureTitle(){
       const wanted = "switch_sandwich — links";
-      if(document.title !== wanted){
-        document.title = wanted;
-      }
+      if(document.title !== wanted){ document.title = wanted; }
     })();
   </script>
 </body>

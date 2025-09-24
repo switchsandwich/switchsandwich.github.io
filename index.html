@@ -19,13 +19,17 @@
       --text: #f7f7f7;
       --muted: #d0cfcf;
       --bg-url: none;
-      --parallaxOffset: 0px; /* управляется скриптом */
+
+      /* параллакс-переменные (используются в body::before) */
+      --parallaxX: 0px;
+      --parallaxY: 0px;
+      --bg-zoom: 6%; /* насколько увеличить фон (универсально подходит) */
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
 
-    /* Шрифты: сначала системный Comic Sans MS, иначе Baloo 2 (крутой для кириллицы), Comic Neue, затем fallback */
+    /* Стек шрифтов: сначала Comic Sans MS (если есть), иначе Baloo 2 (поддержка кириллицы), потом Comic Neue */
     body{
       font-family: "Comic Sans MS", "Baloo 2", "Comic Neue", cursive, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       background: #0b0b0b;
@@ -39,22 +43,26 @@
       padding:28px;
     }
 
-    /* Фон с параллаксом: позиция использует переменную --parallaxOffset */
+    /* Параллакс: положение и zoom управляются CSS-переменными */
     body::before{
       content:"";
       position:fixed;
       inset:0;
       background-image: var(--bg-url), linear-gradient(180deg, rgba(12,12,12,0.25), rgba(0,0,0,0.7));
-      background-size: cover, cover;
-      background-position: center calc(50% + var(--parallaxOffset)), center;
+      /* смещение по X и Y через переменные */
+      background-position: calc(50% + var(--parallaxX)) calc(50% + var(--parallaxY));
+      /* чуть увеличиваем фон, чтобы при смещении не было белых краёв */
+      background-size: calc(100% + var(--bg-zoom));
+      background-repeat: no-repeat;
       filter: blur(4px) saturate(1.05) brightness(0.45);
       z-index: -2;
-      will-change: background-position;
+      will-change: background-position, background-size;
+      pointer-events: none;
     }
 
     .overlay{
       position:fixed; inset:0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35));
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.32));
       z-index:-1;
       pointer-events:none;
     }
@@ -113,7 +121,7 @@
       font-family: inherit;
     }
 
-    /* Карточки ссылки: начальное состояние (скрыто) и видимое состояние (in-view) */
+    /* Скрытая по умолчанию карточка — появление через .in-view (intersection observer) */
     .link-card{
       display:flex;
       flex-direction:column;
@@ -130,14 +138,12 @@
       will-change: transform, opacity;
     }
 
-    /* when in view */
     .link-card.in-view{
       transform: translateY(0) scale(1);
       opacity: 1;
-      transition-delay: 0s;
     }
 
-    /* hover micro interactions */
+    /* Микро-взаимодействия */
     .link-card:hover{
       transform: translateY(-6px) scale(1.01);
       background: var(--card-hover);
@@ -209,7 +215,6 @@
       text-decoration:none;
     }
 
-    /* small screens */
     @media (max-width:560px){
       .card{ padding:18px }
       .avatar{ width:72px; height:72px }
@@ -238,7 +243,7 @@
         <div class="link-desc">Репозитории, демо и инструменты.</div>
       </a>
 
-      <a class="link-card" href="https://www.teepublic.com/user/switch-sandwich" target="_blank" rel="noopener noreferrer">
+      <a class="link-card" href="https://www.teepublic.com/user/switch_sandwich" target="_blank" rel="noopener noreferrer">
         <div class="link-top">
           <div class="link-title"><span class="link-emoji">🛍️</span> Shop</div>
           <div class="small">Магазин</div>
@@ -272,9 +277,8 @@
     // Подставим год
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Все существующие проверки (фон/аватар) + новые эффекты (parallax + scroll animations)
     (function(){
-      // 1) проверка наличия w.png и i.jpg (без ?v= чтобы сохранить кеширование)
+      /* === Существующие проверки (фон/аватар) === */
       const bgTest = new Image();
       bgTest.onload = function(){
         document.documentElement.style.setProperty('--bg-url', `url('w.png')`);
@@ -295,27 +299,71 @@
         av.src = 'i.jpg';
       }
 
-      // 2) Параллакс фона — лёгкий эффект, подойдёт для любых изображений
-      // Используем rAF для производительности
-      let latestScroll = 0;
-      let ticking = false;
-      const parallaxFactor = 0.04; // уменьшай/увеличивай для силы параллакса (0.02..0.07)
-      function onScroll(){
-        latestScroll = window.scrollY || window.pageYOffset;
-        if(!ticking){
-          window.requestAnimationFrame(function(){
-            const offset = Math.round(latestScroll * parallaxFactor);
-            document.documentElement.style.setProperty('--parallaxOffset', offset + 'px');
-            ticking = false;
-          });
-          ticking = true;
-        }
-      }
-      window.addEventListener('scroll', onScroll, {passive:true});
-      // вызов один раз при загрузке
-      onScroll();
+      /* === Параллакс по движению мыши (НЕ скролл) ===
+         - чувствительность небольшая, универсальна для любого изображения
+         - эффект сделан через смещение background-position и небольшой zoom (CSS var --bg-zoom)
+         - использую lerp для плавности
+      */
+      (function mouseParallax(){
+        // Максимальное смещение в пикселях (по X/Y). Уменьши, если нужно ещё слабее.
+        const maxOffset = 18;
+        // lerp коэффициент (0..1) — насколько быстро текущие значения догоняют целевые
+        const ease = 0.12;
 
-      // 3) IntersectionObserver для плавного появления карточек
+        let targetX = 0, targetY = 0;
+        let currentX = 0, currentY = 0;
+
+        // Снижаем эффект на сенсорных устройствах (там параллакс по мыши не нужен)
+        const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+        const effectiveMax = isTouch ? 6 : maxOffset;
+
+        function onPointerMove(e){
+          // получаем координаты указателя (поддерживаем mouse и touch)
+          const x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX) || (window.innerWidth/2);
+          const y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] && e.touches[0].clientY) || (window.innerHeight/2);
+
+          // нормализуем к диапазону [-1,1], центр экрана = 0
+          const nx = (x - window.innerWidth / 2) / (window.innerWidth / 2);
+          const ny = (y - window.innerHeight / 2) / (window.innerHeight / 2);
+
+          // инвертируем движение (чтобы фон двигался противоположно курсору)
+          targetX = -nx * effectiveMax;
+          targetY = -ny * effectiveMax * 0.6; // Y чуть менее чем X для визуального баланса
+        }
+
+        function onLeave(){
+          // возвращаем в центр
+          targetX = 0;
+          targetY = 0;
+        }
+
+        // плавный рендер
+        function frame(){
+          currentX += (targetX - currentX) * ease;
+          currentY += (targetY - currentY) * ease;
+
+          // применяем стиль
+          document.documentElement.style.setProperty('--parallaxX', Math.round(currentX) + 'px');
+          document.documentElement.style.setProperty('--parallaxY', Math.round(currentY) + 'px');
+
+          requestAnimationFrame(frame);
+        }
+
+        // подписка на события указателя
+        window.addEventListener('pointermove', onPointerMove, {passive:true});
+        window.addEventListener('pointerleave', onLeave, {passive:true});
+        window.addEventListener('pointerdown', onPointerMove, {passive:true});
+        window.addEventListener('pointerup', onLeave, {passive:true});
+        // также сброс при выходе мыши за окно
+        window.addEventListener('mouseout', (ev) => {
+          if (!ev.relatedTarget) onLeave();
+        });
+
+        // стартуем цикл анимации
+        frame();
+      })();
+
+      /* === IntersectionObserver для плавного появления карточек === */
       const observerOptions = {
         root: null,
         rootMargin: '0px 0px -10% 0px',
@@ -325,21 +373,19 @@
         entries.forEach(entry=>{
           if(entry.isIntersecting){
             entry.target.classList.add('in-view');
-            // можно отключать наблюдение если анимация однократная
             io.unobserve(entry.target);
           }
         });
       }, observerOptions);
 
-      // наблюдаем все карточки
       document.querySelectorAll('.link-card').forEach((el, i)=>{
-        // небольшой ступенчатый delay через CSS inline style для красоты
         el.style.transitionDelay = (i * 60) + 'ms';
         io.observe(el);
       });
 
-      // 4) добавить маленький эффект при наведении для клавиатурной доступности (focus)
+      // keyboard accessibility: Enter/Space opens link
       document.querySelectorAll('.link-card').forEach(el=>{
+        el.setAttribute('tabindex', '0');
         el.addEventListener('keydown', (e)=>{
           if(e.key === 'Enter' || e.key === ' '){
             el.click();
@@ -349,7 +395,7 @@
 
     })();
 
-    // Подстраховка для title
+    // Защита title
     (function ensureTitle(){
       const wanted = "switch_sandwich — links";
       if(document.title !== wanted){
